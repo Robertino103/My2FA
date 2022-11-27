@@ -21,11 +21,27 @@ int main()
 
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-        perror("[server:] Eroare la crearea socketului.\n");
+        perror("[server:] Error creating socket.\n");
         return errno;
     }
 
     bzero(&server, sizeof(server));
     bzero(&from, sizeof(from));
 
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = htonl;
+    server.sin_port = htons;
+
+    if (bind (sd, (struct sockaddr *)&server, sizeof(struct sockaddr)) == -1)
+    {
+        perror("[server:] Error occured while binding to socket descriptor.\n");
+        return errno;
+    }
+
+    if (listen (sd, 2) == -1)
+    {
+        perror("[server:] Error occured at listen() call.\n");
+        return errno;
+    }
+    
 }
