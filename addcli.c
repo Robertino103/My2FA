@@ -8,7 +8,47 @@
 #include <netdb.h>
 #include <string.h>
 
-int main()
-{
+#define MAX_BUFFER_LEN 200
 
+extern int errno;
+int port;
+
+int main(int argc, char *argv[])
+{
+    int sd;
+    struct sockaddr_in server;
+    char _2fa_opt[MAX_BUFFER_LEN];
+
+    if (argc != 3)
+    {
+        printf("Correct usage : %s <server ip> <port>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    port = atoi(argv[2]);
+
+    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {
+        perror("[client:] Error creating socket.\n");
+        return errno;
+    }
+
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = inet_addr(argv[1]);
+    server.sin_port = htons(port);
+
+    if (connect(sd, (struct sockaddr *)&server, sizeof(struct sockaddr)) == -1)
+    {
+        perror("[client:] Error occured while trying to connect.\n");
+        return errno;
+    }
+
+    bzero(_2fa_opt, MAX_BUFFER_LEN);
+    if(read(sd, _2fa_opt, MAX_BUFFER_LEN) < 0)
+    {
+        perror("[client:] Error reading 2FA options from server.\n");
+        return errno;
+    }
+    printf("%s",_2fa_opt);
+    
 }
