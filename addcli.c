@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <netdb.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_BUFFER_LEN 200
 
@@ -44,11 +45,50 @@ int main(int argc, char *argv[])
     }
 
     bzero(_2fa_opt, MAX_BUFFER_LEN);
-    if(read(sd, _2fa_opt, MAX_BUFFER_LEN) < 0)
+    if (read(sd, _2fa_opt, MAX_BUFFER_LEN) < 0)
     {
         perror("[client:] Error reading 2FA options from server.\n");
         return errno;
     }
-    printf("%s",_2fa_opt);
-    
+    printf("%s", _2fa_opt);
+
+    char optc = fgetc(stdin);
+    int opt;
+
+    bool repeat;
+    do
+    {
+        opt = optc - '0';
+        repeat = false;
+        switch (opt)
+        {
+        case 1:
+        {
+            if (write(sd, "1", 1) <= 0)
+            {
+                perror("[client:] Error writing 2FA option to server.\n");
+                return errno;
+            }
+        }
+        break;
+
+        case 2:
+        {
+            if (write(sd, "2", 1) <= 0)
+            {
+                perror("[client:] Error writing 2FA option to server.\n");
+                return errno;
+            }
+        }
+        break;
+
+        default:
+        {
+            optc = fgetc(stdin);
+            repeat = true;
+        }
+        break;
+        }
+
+    } while (repeat);
 }

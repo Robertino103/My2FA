@@ -54,7 +54,7 @@ int main()
     {
         int client;
         int length = sizeof(from);
-        printf("[server:] Awaiting at %d port...", PORT);
+        printf("[server:] Awaiting at %d port...\n", PORT);
         fflush(stdout);
 
         if ((client = accept(sd, (struct sockaddr *)&from, &length)) < 0)
@@ -73,5 +73,13 @@ int main()
             continue;
         }
 
+        char _2fa_response[MAX_BUFFER_LEN];
+        if (read(client, _2fa_response, 1) <= 0)
+        {
+            perror("[server:] Error reading 2FA response from client.\n");
+            close(client);
+            continue;
+        }
+        printf("Option %s chosen for 2FA auth\n", _2fa_response);
     }
 }
