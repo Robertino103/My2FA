@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-        perror("[client:] Error creating socket.\n");
+        perror("[add_client:] Error creating socket.\n");
         return errno;
     }
 
@@ -40,14 +40,14 @@ int main(int argc, char *argv[])
 
     if (connect(sd, (struct sockaddr *)&server, sizeof(struct sockaddr)) == -1)
     {
-        perror("[client:] Error occured while trying to connect.\n");
+        perror("[add_client:] Error occured while trying to connect.\n");
         return errno;
     }
 
     bzero(_2fa_opt, MAX_BUFFER_LEN);
     if (read(sd, _2fa_opt, MAX_BUFFER_LEN) < 0)
     {
-        perror("[client:] Error reading 2FA options from server.\n");
+        perror("[add_client:] Error reading 2FA options from server.\n");
         return errno;
     }
     printf("%s", _2fa_opt);
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         {
             if (write(sd, "1", 1) <= 0)
             {
-                perror("[client:] Error writing 2FA option to server.\n");
+                perror("[add_client:] Error writing 2FA option to server.\n");
                 return errno;
             }
         }
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         {
             if (write(sd, "2", 1) <= 0)
             {
-                perror("[client:] Error writing 2FA option to server.\n");
+                perror("[add_client:] Error writing 2FA option to server.\n");
                 return errno;
             }
         }
