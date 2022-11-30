@@ -7,18 +7,44 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <pthread.h>
 
+#define MAX_BUFFER_LEN 200
 #define _2FA_PORT 2050
 #define MAX_2FA_BUFFER 10
+#define NO_THREADS 2
 
 extern int errno;
+
+static void *treat(void *);
+
+typedef struct
+{
+    pthread_t idThread;
+    int thCount;
+} Thread;
+
+Thread *threadsPool;
+int _2fa_sd;
+int nthreads;
+pthread_mutex_t mlock = PTHREAD_MUTEX_INITIALIZER;
+
+void respond(int cl, int idThread);
+int firstclient;
+char firstclientmsg[MAX_BUFFER_LEN] = "";
+
+int ok = 0;
+int mok = 0;
 
 int main()
 {
     struct sockaddr_in server;
-    struct sockaddr_in from;
 
-    int _2fa_sd;
+    void threadCreate(int);
+    nthreads = NO_THREADS;
+    threadsPool = calloc(sizeof(Thread), nthreads);
 
     if ((_2fa_sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
@@ -26,8 +52,10 @@ int main()
         return errno;
     }
 
+    int on = 1;
+    setsockopt(_2fa_sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
     bzero(&server, sizeof(server));
-    bzero(&from, sizeof(from));
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -44,29 +72,81 @@ int main()
         perror("[2fa_server:] Error occured at listen() call.\n");
         return errno;
     }
-    
-    while(1)
-    {
-        int add_srv;
-        int length = sizeof(from);
-        fflush(stdout);
-        add_srv = accept(_2fa_sd, (struct sockaddr *)&from, &length);
-        if(add_srv < 0)
-        {
-            perror("[2fa_server:] Error accepting additional server");
-            continue;
-        }
 
-        char add_srv_message[MAX_2FA_BUFFER];
-        bzero(add_srv_message, MAX_2FA_BUFFER);
-        if (read(add_srv, add_srv_message, MAX_2FA_BUFFER) <= 0)
-        {
-            perror("[2fa_server:] Error reading from additional server");
-            close(add_srv);
-            continue;
-        }
-        printf("COAIE : %s", add_srv_message);
-        close(add_srv);
+    printf("Creating %d threads...\n", nthreads);
+    fflush(stdout);
+    int i;
+    for (i = 0; i < nthreads; i++)
+    {
+        threadCreate(i);
     }
-    
+
+    for (;;)
+    {
+        printf("[2fa_server:] Awaiting at port %d...\n", _2FA_PORT);
+        pause();
+    }
+
+    if (write(_2fa_sd, &firstclientmsg, strlen(firstclientmsg)) <= 0)
+    {
+        perror("Error writing message to 2FA client\n");
+        return errno;
+    }
+};
+
+void threadCreate(int i)
+{
+    void *treat(void *);
+
+    pthread_create(&threadsPool[i].idThread, NULL, &treat, (void *)i);
+    return;
+}
+
+void *treat(void *arg)
+{
+    int client;
+    struct sockaddr_in from;
+    bzero(&from, sizeof(from));
+    printf("[thread]- %d - pornit...\n", (int)arg);
+    fflush(stdout);
+
+    for (;;)
+    {
+        int length = sizeof(from);
+        pthread_mutex_lock(&mlock);
+        if ((client = accept(_2fa_sd, (struct sockaddr *)&from, &length)) < 0)
+        {
+            perror("[2fa_thread:]Error accepting.\n");
+        }
+        else
+        {
+            if(ok==0)
+            {
+                firstclient = client;
+                ok = 1;
+            }
+        }
+        pthread_mutex_unlock(&mlock);
+        threadsPool[(int)arg].thCount++;
+        respond(client, (int)arg);
+
+        //close(client);
+    }
+}
+
+char msg[MAX_BUFFER_LEN];
+
+void respond(int cl, int idThread)
+{
+    if (read(cl, &msg, sizeof(msg)) <= 0)
+    {
+        perror("[2fa_thread:] Error reading from a client\n");
+    }
+    printf("[2fa_server:] Message received : %s\n", msg);
+
+    if((strncmp(msg, "1", 1) == 0 || strncmp(msg, "2", 1) == 0) && strlen(msg) <= 2)
+    {
+        write(firstclient, &msg, strlen(msg));
+    }
+
 }

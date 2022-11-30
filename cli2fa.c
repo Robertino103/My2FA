@@ -46,11 +46,20 @@ int main(int argc, char *argv[])
     }
 
     bzero(msg_from_2fa_srv, MAX_BUFFER_LEN);
-    if(read(sd, msg_from_2fa_srv, MAX_BUFFER_LEN) < 0)
+
+    if(write(sd, "2FA Client connected", 20) <= 0)
+    {
+        perror("[2fa_client:] Error writing connect message.\n");
+        return errno;
+    }
+
+    if(read(sd, msg_from_2fa_srv, MAX_BUFFER_LEN) <= 0)
     {
         perror("[2fa_client:] Error reading from 2FA server\n");
         return errno;
     }
-    printf("A ajuns: %s", msg_from_2fa_srv);
+    printf("A ajuns: %s\n", msg_from_2fa_srv);
+    
+    close(sd);
 
 }
