@@ -10,11 +10,15 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <pthread.h>
+#include <math.h>
+#include <time.h>
 
 #define MAX_BUFFER_LEN 200
 #define _2FA_PORT 2050
 #define MAX_2FA_BUFFER 10
 #define NO_THREADS 2
+#define _2FA_CODE_LEN 6
+#define TIME_FOR_2FA_GEN 15
 
 extern int errno;
 
@@ -38,8 +42,83 @@ char firstclientmsg[MAX_BUFFER_LEN] = "";
 int ok = 0;
 int mok = 0;
 
+char* random_2fa_pass()
+{
+    char numbers[] = "0123456789";
+    char letter[] = "qwertyuiopasdfghjklzxcvbnm";
+    char LETTER[] = "QWERTYUIOPASDFGHJKLZXCVBNM";
+
+    srand((unsigned int)(time(NULL)));
+    
+    char *pass = malloc(_2FA_CODE_LEN);
+
+    int randomizer = rand() % 3;
+
+    for (int i=0; i < _2FA_CODE_LEN; i++)
+    {
+        switch(randomizer)
+        {
+            case 0:
+            {
+                pass[i] = numbers[rand() % 10];
+                randomizer = rand() % 3;
+            }break;
+
+            case 1:
+            {
+                pass[i] = letter[rand() % 26];
+                randomizer = rand() % 3;
+            }break;
+
+            case 2:
+            {
+                pass[i] = LETTER[rand() % 26];
+                randomizer = rand() % 3;
+            }break;
+
+            default:
+            {
+                strcpy(pass,"+ERROR");
+            }break;
+        }
+    }
+    return pass;
+}
+
+void ret_2fa_pass()
+{
+    char *_2fa_code = random_2fa_pass();
+    //printf("2FA Code : %s", _2fa_code);
+    FILE *fptr;
+    fptr = fopen("_2fa_last_codes.tfa", "a");
+    if(fptr == NULL)
+    {
+        perror("[2fa_server:] Error writing 2FA code to file\n");
+        return errno;
+    }
+    fprintf(fptr, "%s", _2fa_code);
+    fprintf(fptr,"\n");
+    fclose(fptr);
+    free(_2fa_code);
+}
+
+void* gen_2fa_onthread(void *arg)
+{
+    while(1)
+    {
+        ret_2fa_pass();
+        sleep(TIME_FOR_2FA_GEN);
+    }
+    return 0;
+}
+
+
 int main()
 {
+    //ret_2fa_pass();
+    pthread_t tid;
+    pthread_create(&tid, NULL, &gen_2fa_onthread, NULL);
+
     struct sockaddr_in server;
 
     void threadCreate(int);
