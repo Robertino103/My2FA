@@ -166,6 +166,7 @@ void* gen_2fa_onthread(void *arg)
 
 int main()
 {
+    printf("====================================\n2FA Server\n====================================\n");
     //ret_2fa_pass();
     pthread_t tid;
     pthread_create(&tid, NULL, &gen_2fa_onthread, NULL);

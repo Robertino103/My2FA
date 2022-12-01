@@ -17,6 +17,7 @@ int port;
 
 int main(int argc, char *argv[])
 {
+    printf("====================================\nAdditional Client\n====================================\n");
     printf("Connecting to additional server...\n");
     int sd;
     struct sockaddr_in server;

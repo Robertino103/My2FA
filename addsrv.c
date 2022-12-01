@@ -22,6 +22,7 @@ extern int errno;
 
 int main()
 {
+    printf("====================================\nAdditional Server\n====================================\n");
     char appname[MAX_APP_LEN] = " ";
     strcpy(appname, PREDEFAPP);
     char _2fa_opt[MAX_BUFFER_LEN] = " ";

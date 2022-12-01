@@ -17,6 +17,7 @@ int port;
 
 int main(int argc, char *argv[])
 {
+    printf("====================================\n2FA Client\n====================================\n");
     int sd;
     struct sockaddr_in server;
     char msg_from_2fa_srv[MAX_BUFFER_LEN];
