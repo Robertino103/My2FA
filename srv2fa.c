@@ -294,6 +294,7 @@ void respond(int cl, int idThread)
                 perror("[2fa_server:] Error reading 2FA option from client.\n");
                 return errno;
             }
+            yn[sizeof(char)] = '\0';
             printf("%s option sending to additional server...\n", yn);
 
             if (write(cl,&yn,sizeof(char)) < 0)
