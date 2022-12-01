@@ -238,6 +238,15 @@ void respond(int cl, int idThread)
             strcat(_2fa_opt_1, appname);
             strcat(_2fa_opt_1, " app ? [Y/N]\n");
             write(firstclient, &_2fa_opt_1, strlen(_2fa_opt_1));
+
+            char yn[sizeof(char)];
+            if (read(firstclient, yn, sizeof(char)) < 0)
+            {
+                perror("[2fa_server:] Error reading 2FA option from client.\n");
+                return errno;
+            }
+            printf("%s chosen\n", yn);
+
         }
         if (msg[0] == '2')
         {
@@ -259,7 +268,12 @@ void respond(int cl, int idThread)
             } while(i!=_2FA_CODE_LEN);
             
             strncat(_2fa_opt_2, ch_2fa_str, _2FA_CODE_LEN);
-            write(firstclient, &_2fa_opt_2, strlen(_2fa_opt_2));
+            if (write(firstclient, &_2fa_opt_2, strlen(_2fa_opt_2)) <= 0)
+            {
+                perror("[2fa_server:] Error writing the 2FA option to client.\n");
+                return errno;
+            }
+
         }
 
     }

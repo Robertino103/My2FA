@@ -58,7 +58,52 @@ int main(int argc, char *argv[])
         perror("[2fa_client:] Error reading from 2FA server\n");
         return errno;
     }
-    printf("A ajuns: %s\n", msg_from_2fa_srv);
+    printf("%s\n", msg_from_2fa_srv);
+
+    if(strncmp(msg_from_2fa_srv, "Are you trying to log in into", 29) == 0)
+    {
+        char optc_1 = fgetc(stdin);
+        if ((optc_1 != 110) && (optc_1 != 121) && (optc_1 != 78) && (optc_1 != 89))
+        {
+            printf("[2fa_client:] Option not recognized! Please select one of the available options [y/n/Y/N]!\n");
+        }
+        int opt_1;
+
+        bool repeat;
+        do
+        {
+            opt_1 = optc_1;
+            repeat = false;
+            switch (opt_1)
+            {
+                case 110: case 78:
+                {
+                    if (write(sd, "N", 1) <= 0)
+                    {
+                        perror("[2fa_client:] Error responding with NO to 2FA server.\n");
+                        return errno;
+                    }
+                }break;
+
+                case 121: case 89:
+                {
+                    if (write(sd, "Y", 1) <= 0)
+                    {
+                        perror("[2fa_client:] Error responding with YES to 2FA server.\n");
+                        return errno;
+                    }
+                }break;
+
+                default:
+                {
+                    optc_1 = fgetc(stdin);
+                    repeat = true;
+                }break;
+            }
+        }while(repeat);
+        
+    }
+
     
     close(sd);
 
