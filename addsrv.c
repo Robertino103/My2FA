@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define _2FA_CODE_LEN 6
 #define MAX_BUFFER_LEN 200
@@ -14,6 +15,7 @@
 #define PORT 3103
 #define _2FA_PORT 2050
 #define PREDEFAPP "Tinder"
+#define _2FA_CODE_CHECK 34
 
 extern int errno;
 
@@ -166,7 +168,56 @@ int main()
                 printf("2FA code inserted : %s\n", _2fa_try);
 
                 printf("Checking if code is valid...\n");
+                
                 //TODO : Check if code is in file and respond to addcli;
+                FILE *fp;
+                fp = fopen("_2fa_last_codes.tfa", "rb");
+                fseek(fp, 0, SEEK_END);
+                int seeklen = ftell(fp);
+                fseek(fp, seeklen - _2FA_CODE_CHECK - 1, SEEK_SET);
+                int ch_2fa = 1;
+                char ch_2fa_str[_2FA_CODE_LEN];
+                int i = 0;
+                int j = 0;
+                bool validcode = false;
+                do
+                {
+                    i++;
+                    ch_2fa = fgetc(fp);
+                    ch_2fa_str[j++] = ch_2fa;
+                    if(j == _2FA_CODE_LEN)
+                    {
+                        ch_2fa_str[_2FA_CODE_LEN] = '\0';
+                        //printf("%d : %s\n", i, ch_2fa_str);
+                        if(strncmp(ch_2fa_str, _2fa_try, _2FA_CODE_LEN) == 0)
+                        {
+                            validcode = true;
+                        }
+                        j = 0;
+                        fgetc(fp);
+                    }
+                } while (i!=_2FA_CODE_CHECK);
+
+                /*if(validcode == true) printf("VALID 2FA CODE\n");
+                else printf("INVALID CODE\n");*/
+
+                if(validcode == true)
+                {
+                    if(write(client, "Valid code! Granted access !\n", 29) < 0)
+                    {
+                        perror("[add_server:] Error writing auth response to client.\n");
+                        return errno;
+                    }
+                }
+                else
+                {
+                    if(write(client, "Invlid code! Not permitted !\n", 29) < 0)
+                    {
+                        perror("[add_server:] Error writing auth response to client.\n");
+                        return errno;
+                    }
+                }
+                
 
             }break;
         }

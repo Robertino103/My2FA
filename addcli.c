@@ -118,9 +118,15 @@ int main(int argc, char *argv[])
             perror("[add_client:] Error writing 2FA code.\n");
             return errno;
         }
-
-        //TODO : Read server response (if code is valid or not);
-
+        
+        char manualauthaccess[MAX_BUFFER_LEN];
+        if(read(sd, &manualauthaccess, MAX_BUFFER_LEN) <= 0)
+        {
+            perror("[add_client:] Error writing 2FA code.\n");
+            return errno;
+        }
+        manualauthaccess[strlen(manualauthaccess)] = '\0';
+        printf("%s", manualauthaccess);
     }
     
 }
