@@ -127,5 +127,27 @@ int main()
         yn[1] = '\0';
         printf("%s option chosen\n", yn);
 
+        switch(yn[0])
+        {
+            case 78: //no
+            {
+                if(write(client, "Authentication not permitted !", 30) < 0)
+                {
+                    perror("[add_server:] Error writing auth response to client.\n");
+                    return errno;
+                }
+            }break;
+
+            case 89: //yes
+            {
+                if(write(client, "Granted access !", 16) < 0)
+                {
+                    perror("[add_server:] Error writing auth response to client.\n");
+                    return errno;
+                }
+            }break;
+
+        }
+
     }
 }

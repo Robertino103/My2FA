@@ -93,4 +93,15 @@ int main(int argc, char *argv[])
         }
 
     } while (repeat);
+
+    char authaccess[MAX_BUFFER_LEN];
+    if(read(sd, &authaccess, MAX_BUFFER_LEN) <= 0)
+    {
+        perror("[add_client:] Error reading auth response from server.\n");
+        return errno;
+    }
+
+    authaccess[strlen(authaccess)] = '\0';
+    printf("%s", authaccess);
+
 }
