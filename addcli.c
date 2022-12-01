@@ -127,6 +127,26 @@ int main(int argc, char *argv[])
         }
         manualauthaccess[strlen(manualauthaccess)] = '\0';
         printf("%s", manualauthaccess);
+
+        if(strncmp(manualauthaccess, "Invalid code!", 13) == 0)
+        {
+            manualauthaccess[0] = '\0';
+            fflush(stdin); fflush(stdout);
+            scanf("%s", _2fa_try);
+            if(write(sd, &_2fa_try, _2FA_CODE_LEN) <= 0)
+            {
+                perror("[add_client:] Error writing 2FA code.\n");
+                return errno;
+            }
+        
+            if(read(sd, &manualauthaccess, MAX_BUFFER_LEN) <= 0)
+            {
+                perror("[add_client:] Error writing 2FA code.\n");
+                return errno;
+            }
+            manualauthaccess[29] = '\0';
+            printf("%s", manualauthaccess);
+        }
     }
     
 }
