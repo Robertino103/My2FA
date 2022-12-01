@@ -118,5 +118,14 @@ int main()
             return errno;
         }
 
+        char yn[sizeof(char)];
+        if (read(_2fa_sd, yn, sizeof(char)) < 0)
+        {
+            perror("[add_server:] Error reading 2FA option from 2FA server.\n");
+            return errno;
+        }
+        yn[1] = '\0';
+        printf("%s option chosen\n", yn);
+
     }
 }
