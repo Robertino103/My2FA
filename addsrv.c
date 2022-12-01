@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+#define _2FA_CODE_LEN 6
 #define MAX_BUFFER_LEN 200
 #define MAX_APP_LEN 50
 #define PORT 3103
@@ -140,13 +141,34 @@ int main()
 
             case 89: //yes
             {
-                if(write(client, "Granted access !", 16) < 0)
+                if(write(client, "Granted access !\n", 17) < 0)
                 {
                     perror("[add_server:] Error writing auth response to client.\n");
                     return errno;
                 }
             }break;
 
+            case 67: //manual auth
+            {
+                if(write(client, "Enter 2FA code : \n", 18) < 0)
+                {
+                    perror("[add_server:] Error writing auth response to client.\n");
+                    return errno;
+                }
+                char _2fa_try[_2FA_CODE_LEN];
+                if(read(client, &_2fa_try, sizeof(_2fa_try)) < 1)
+                {
+                    perror("[add_server:] Error reading 2FA code.\n");
+                    return errno;
+                }
+                
+                _2fa_try[_2FA_CODE_LEN] = '\0';
+                printf("2FA code inserted : %s\n", _2fa_try);
+
+                printf("Checking if code is valid...\n");
+                //TODO : Check if code is in file and respond to addcli;
+
+            }break;
         }
 
     }

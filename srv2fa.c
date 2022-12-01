@@ -279,9 +279,18 @@ void respond(int cl, int idThread)
                 perror("[2fa_server:] Error writing the 2FA option to client.\n");
                 return errno;
             }
+            
+            if (write(cl,"C",sizeof(char)) < 0)
+            {
+                perror("[2fa_server:] Error writing 2FA option to additional server.\n");
+                return errno;
+            }
 
         }
 
     }
 
 }
+
+//TODO : Make files for each predefined app
+//TODO : Read from the specific app file when returning the 2FA code

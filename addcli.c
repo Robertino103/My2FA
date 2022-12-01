@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define _2FA_CODE_LEN 6
 #define MAX_BUFFER_LEN 200
 
 extern int errno;
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
         perror("[add_client:] Error reading 2FA options from server.\n");
         return errno;
     }
-    printf("%s", _2fa_opt);
+    printf("%s\n", _2fa_opt);
 
     char optc = fgetc(stdin);
     if(optc - '0' != 1 && optc - '0' != 2) printf("[add_client:] Option not recognized! Please select one of the available options [1/2]!\n");
@@ -80,7 +81,7 @@ int main(int argc, char *argv[])
             {
                 perror("[add_client:] Error writing 2FA option to server.\n");
                 return errno;
-            }   
+            }
         }
         break;
 
@@ -94,6 +95,7 @@ int main(int argc, char *argv[])
 
     } while (repeat);
 
+    
     char authaccess[MAX_BUFFER_LEN];
     if(read(sd, &authaccess, MAX_BUFFER_LEN) <= 0)
     {
@@ -102,6 +104,23 @@ int main(int argc, char *argv[])
     }
 
     authaccess[strlen(authaccess)] = '\0';
-    printf("%s", authaccess);
+    printf("%s\n", authaccess);
 
+    if(strncmp(authaccess, "Enter 2FA code", 14) == 0)
+    {
+        char _2fa_try[_2FA_CODE_LEN];
+
+        fflush(stdin); fflush(stdout);
+        scanf("%s", _2fa_try);
+
+        if(write(sd, &_2fa_try, _2FA_CODE_LEN) <= 0)
+        {
+            perror("[add_client:] Error writing 2FA code.\n");
+            return errno;
+        }
+
+        //TODO : Read server response (if code is valid or not);
+
+    }
+    
 }
