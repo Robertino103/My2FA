@@ -14,7 +14,8 @@
 #define MAX_APP_LEN 50
 #define PORT 3103
 #define _2FA_PORT 2050
-#define PREDEFAPP "Tinder"
+#define PREDEFAPP "Steam"
+#define PREDEF_2FA_FILENAME "_2fa_last_codes_Steam.tfa"
 #define _2FA_CODE_CHECK 34
 
 extern int errno;
@@ -171,7 +172,7 @@ int main()
                 
                 //TODO : Check if code is in file and respond to addcli;
                 FILE *fp;
-                fp = fopen("_2fa_last_codes.tfa", "rb");
+                fp = fopen(PREDEF_2FA_FILENAME, "rb");
                 fseek(fp, 0, SEEK_END);
                 int seeklen = ftell(fp);
                 fseek(fp, seeklen - _2FA_CODE_CHECK - 1, SEEK_SET);
@@ -229,7 +230,7 @@ int main()
                     printf("Checking if code is valid...\n");
                 
                     FILE *fp;
-                    fp = fopen("_2fa_last_codes.tfa", "rb");
+                    fp = fopen(PREDEF_2FA_FILENAME, "rb");
                     fseek(fp, 0, SEEK_END);
                     int seeklen = ftell(fp);
                     fseek(fp, seeklen - _2FA_CODE_CHECK - 1, SEEK_SET);

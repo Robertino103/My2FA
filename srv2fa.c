@@ -89,19 +89,68 @@ char* random_2fa_pass()
 
 void ret_2fa_pass()
 {
-    char *_2fa_code = random_2fa_pass();
+    char *_2fa_code_1 = random_2fa_pass();
     //printf("2FA Code : %s", _2fa_code);
-    FILE *fptr;
-    fptr = fopen("_2fa_last_codes.tfa", "a");
-    if(fptr == NULL)
+
+    FILE *fptr1;
+    fptr1 = fopen("_2fa_last_codes_Tinder.tfa", "a");
+    if(fptr1 == NULL)
     {
         perror("[2fa_server:] Error opening 2FA storage file\n");
         return errno;
     }
-    fprintf(fptr, "%s", _2fa_code);
-    fprintf(fptr,"\n");
-    fclose(fptr);
-    free(_2fa_code);
+    fprintf(fptr1, "%s", _2fa_code_1);
+    fprintf(fptr1,"\n");
+    fclose(fptr1);
+    free(_2fa_code_1);
+
+    sleep(1);
+    char *_2fa_code_2 = random_2fa_pass();
+    //printf("2FA Code : %s", _2fa_code);
+
+    FILE *fptr2;
+    fptr2 = fopen("_2fa_last_codes_Facebook.tfa", "a");
+    if(fptr2 == NULL)
+    {
+        perror("[2fa_server:] Error opening 2FA storage file\n");
+        return errno;
+    }
+    fprintf(fptr2, "%s", _2fa_code_2);
+    fprintf(fptr2,"\n");
+    fclose(fptr2);
+    free(_2fa_code_2);
+
+    sleep(1);
+    char *_2fa_code_3 = random_2fa_pass();
+    //printf("2FA Code : %s", _2fa_code);
+
+    FILE *fptr3;
+    fptr3 = fopen("_2fa_last_codes_Steam.tfa", "a");
+    if(fptr3 == NULL)
+    {
+        perror("[2fa_server:] Error opening 2FA storage file\n");
+        return errno;
+    }
+    fprintf(fptr3, "%s", _2fa_code_3);
+    fprintf(fptr3,"\n");
+    fclose(fptr3);
+    free(_2fa_code_3);
+
+    sleep(1);
+    char *_2fa_code_4 = random_2fa_pass();
+    //printf("2FA Code : %s", _2fa_code);
+
+    FILE *fptr4;
+    fptr4 = fopen("_2fa_last_codes_Whatsapp.tfa", "a");
+    if(fptr4 == NULL)
+    {
+        perror("[2fa_server:] Error opening 2FA storage file\n");
+        return errno;
+    }
+    fprintf(fptr4, "%s", _2fa_code_4);
+    fprintf(fptr4,"\n");
+    fclose(fptr4);
+    free(_2fa_code_4);
 }
 
 void* gen_2fa_onthread(void *arg)
@@ -258,8 +307,14 @@ void respond(int cl, int idThread)
         {
             printf("Authenticating through 2FA code manually...\n");
 
+            char _2fa_file[MAX_BUFFER_LEN] = "_2fa_last_codes_";
+            strcat(_2fa_file, appname);
+            strcat(_2fa_file,".tfa");
+            char fileSpec[strlen(_2fa_file)+1];
+            snprintf(fileSpec, sizeof(fileSpec), "%s", _2fa_file);
+            fflush(stdout);
             FILE *fptr;
-            fptr = fopen("_2fa_last_codes.tfa", "r");
+            fptr = fopen(fileSpec, "r");
             
             fseek(fptr, 0, SEEK_END);
             int seeklen = ftell(fptr);
