@@ -85,7 +85,7 @@ int main()
             continue;
         }
 
-        char _2fa_response[MAX_BUFFER_LEN];
+        char _2fa_response[MAX_BUFFER_LEN] = "";
         if (read(client, _2fa_response, 1) <= 0)
         {
             perror("[add_server:] Error reading 2FA response from client.\n");
@@ -94,7 +94,7 @@ int main()
         }
         printf("Option %s chosen for 2FA auth\n", _2fa_response);
 
-        printf("Sending option to 2fa server ... \n");
+        printf("Sending option to 2FA server ... \n");
         /*struct sockaddr_in to_2fa_srv;
         bzero(&to_2fa_srv, sizeof(to_2fa_srv));
         to_2fa_srv.sin_family = AF_INET;
@@ -108,6 +108,9 @@ int main()
             perror("[add_server:] Error connecting to 2FA server");
             return errno;
         }
+
+        strcat(_2fa_response, "|");
+        strcat(_2fa_response, appname);
 
         if(write(_2fa_sd, _2fa_response, sizeof(_2fa_response)) <= 0)
         {

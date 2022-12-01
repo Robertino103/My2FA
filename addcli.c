@@ -16,6 +16,7 @@ int port;
 
 int main(int argc, char *argv[])
 {
+    printf("Connecting to additional server...\n");
     int sd;
     struct sockaddr_in server;
     char _2fa_opt[MAX_BUFFER_LEN];
@@ -53,6 +54,7 @@ int main(int argc, char *argv[])
     printf("%s", _2fa_opt);
 
     char optc = fgetc(stdin);
+    if(optc - '0' != 1 && optc - '0' != 2) printf("[add_client:] Option not recognized! Please select one of the available options [1/2]!\n");
     int opt;
 
     bool repeat;
@@ -78,7 +80,7 @@ int main(int argc, char *argv[])
             {
                 perror("[add_client:] Error writing 2FA option to server.\n");
                 return errno;
-            }
+            }   
         }
         break;
 

@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
@@ -13,6 +14,7 @@
 #include <math.h>
 #include <time.h>
 
+#define MAX_APP_LEN 50
 #define MAX_BUFFER_LEN 200
 #define _2FA_PORT 2050
 #define MAX_2FA_BUFFER 10
@@ -93,7 +95,7 @@ void ret_2fa_pass()
     fptr = fopen("_2fa_last_codes.tfa", "a");
     if(fptr == NULL)
     {
-        perror("[2fa_server:] Error writing 2FA code to file\n");
+        perror("[2fa_server:] Error opening 2FA storage file\n");
         return errno;
     }
     fprintf(fptr, "%s", _2fa_code);
@@ -132,7 +134,7 @@ int main()
     }
 
     int on = 1;
-    setsockopt(_2fa_sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    setsockopt(_2fa_sd, SOL_SOCKET, SO_REUSEADDR|TCP_NODELAY, &on, sizeof(on));
 
     bzero(&server, sizeof(server));
 
@@ -214,6 +216,8 @@ void *treat(void *arg)
 }
 
 char msg[MAX_BUFFER_LEN];
+char _2fa_opt_1[MAX_BUFFER_LEN] = "Are you trying to log in into ";
+char _2fa_opt_2[MAX_BUFFER_LEN] = "Your 2FA code is : ";
 
 void respond(int cl, int idThread)
 {
@@ -222,10 +226,42 @@ void respond(int cl, int idThread)
         perror("[2fa_thread:] Error reading from a client\n");
     }
     printf("[2fa_server:] Message received : %s\n", msg);
+    fflush(stdout);
 
-    if((strncmp(msg, "1", 1) == 0 || strncmp(msg, "2", 1) == 0) && strlen(msg) <= 2)
+    if((strncmp(msg, "1|", 2) == 0) || (strncmp(msg, "2|", 2) == 0))
     {
-        write(firstclient, &msg, strlen(msg));
+        char appname[MAX_APP_LEN];
+        strcpy(appname, msg+2);
+        if (msg[0] == '1')
+        {
+            printf("Authenticating through confirmation...\n");
+            strcat(_2fa_opt_1, appname);
+            strcat(_2fa_opt_1, " app ? [Y/N]\n");
+            write(firstclient, &_2fa_opt_1, strlen(_2fa_opt_1));
+        }
+        if (msg[0] == '2')
+        {
+            printf("Authenticating through 2FA code manually...\n");
+
+            FILE *fptr;
+            fptr = fopen("_2fa_last_codes.tfa", "r");
+            
+            fseek(fptr, 0, SEEK_END);
+            int seeklen = ftell(fptr);
+            fseek(fptr, seeklen - _2FA_CODE_LEN - 1, SEEK_SET);
+            int ch_2fa = 1;
+            char ch_2fa_str[_2FA_CODE_LEN];
+            int i = 0;
+            do
+            {
+                ch_2fa = fgetc(fptr);
+                ch_2fa_str[i++] = ch_2fa;
+            } while(i!=_2FA_CODE_LEN);
+            
+            strncat(_2fa_opt_2, ch_2fa_str, _2FA_CODE_LEN);
+            write(firstclient, &_2fa_opt_2, strlen(_2fa_opt_2));
+        }
+
     }
 
 }
