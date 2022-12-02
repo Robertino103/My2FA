@@ -1,0 +1,60 @@
+\documentclass{article}
+
+\usepackage[a4paper, portrait, margin=1in]{geometry}
+\usepackage{layout}
+\usepackage{tabularx}
+\usepackage{color, colortbl}
+\usepackage{tcolorbox}
+
+\definecolor{orange_proj}{rgb}{1.0, 0.49, 0.0}
+
+\begin{document}
+	\title{
+	My2FA\\
+	Raport tehnic\\
+	}
+	\author{Mocanita Robert-Daniel (2A3)}
+	
+	\date{06 - Decembrie - 2022}
+	
+	\maketitle
+	
+	\begin{tabularx}{1\textwidth} {|X|}
+		\hline
+		\large
+		\textsf{My2FA(B)}\\
+		\hline
+		\cellcolor{orange_proj}
+		\textsf{Dezvoltati o aplicatie de tip client/server, care oferă gestionarea codurilor si notificarilor de tip 2FA (two-factor authentication) pentru o lista predefinita de aplicații. In cadrul serverului, codurile 2FA vor fi regenerate recurent pentru fiecare aplicatie si vor putea fi aratate la cererea clientului dezvoltat pentru aceasta aplicatie. In momentul in care serverul 2FA primeste o notificare de autentificare pentru una din aplicatiile pe care le are in gestiune, acesta il va notifica pe clientul 2FA mai departe si ii va cere aprobarea sau respingerea acesteia. Pentru a valida functionalitatea aplicatiei 2FA, un client si un server aditional vor fi dezvoltate. Serverul aditional va juca rolul aplicatiei unde utilizatorul incearca sa se autentifice prin intermediul clientului aditional. In momentul in care clientul initializeaza o cerere de autentificare la serverul aditional prin intermediul clientului aditional, i se vor prezenta doua optiuni: trimiterea unei notificari in aplicatia de 2FA pentru a confirma identitatea sau introducerea unui cod din aplicatia de 2FA. In cazul notificarii, daca se primeste un raspuns pozitiv de la serverul 2FA, autentificarea in aplicatia aditionala va functiona, altfel va esua. In cazul utilizarii mecanismului bazat pe coduri, codul introdus de utilizator in clientul aditional, va fi preluat de serverul aditional si verificat cu serverul de 2FA, pentru a decide daca autentificarea s-a realizat cu succes. Bonus: mecanism de stocare criptat, interogari criptate. }
+		\\
+		\hline
+	\end{tabularx}
+
+	\section{Introducere}
+	Proiectul My2FA se bazeaza pe o comunicare de tip client/server prin care se simuleaza functionarea unui sistem de tip Two-Factor Authentication. Acesta este compus din doua perechi server-client : o pereche ce gestioneaza sistemul de autentificare si inca una aditionala care joaca rolul aplicatiei in care se incearca autentificarea. \\
+	Serverul are o lista de aplicatii predefinite pentru care genereaza in mod continuu coduri de tip 2FA, acestea incepand sa fie create din momentul in care serverul este pornit. La cererea serverului aditional, serverul 2FA poate manipula doua tipuri de autentificare : prin confirmare directa sau manuala. In cazul confirmarii directe, acesta asteapta un raspuns $da$/$nu$ de la clientul 2FA si realizeaza (sau nu) autentificarea iar in cazul metodei manuale, acesta trimite un cod 2FA, clientul il afiseaza iar utilizatorul va putea introduce in clientul aditional codul de autentificare.
+	
+	\section{Tehnologiile utilizate}
+	
+	\subsection{TCP/IP}
+	Protocolul utilizat de aplicatie este TCP/IP (protocol orientat-conexiune) deoarece, fiind o aplicatie de securitate, e nevoie sa asiguram o conexiune fiabila, fara o posibila pierdere de informatii. \\
+	Protocolul de Control al Transmisiei efectueaza o conectare virtuala full duplex intre doua puncte terminale, fiecare punct fiind definit de catre o adresa IP si de catre un port TCP. Acesta ofera incredere, asigurand livrarea ordonata a fluxurilor de octeti de la un program la altul din retea.
+	
+	\subsection{Socket-uri}
+	Pentru realizarea conexiunii client-server a fost necesara utilizarea socket-urilor. \\
+	Programarea prin socket-uri reprezinta o abordare low-level prin care doua calculatoare (programe) pot fi conectate pentru a realiza un schimb de date. Ca principiu de baza programarea prin socketuri face posibila comunicarea in full-duplex intre client si server, mesajele fiind fluxuri de octeti. \\
+	Un socket reprezinta un punct de conexiune intr-o retea TCP/IP. Serverul deschide un socket si asteapta conexiuni iar clientul, cunoscand adresa socket-ului si portul acestuia, se poate conecta la server pentru a incepe schimbul de informatii.
+	
+	\subsection{Thread-uri}
+	Am ales sa folosesc modelul $prethreaded$ pentru realizarea serverului care gestioneaza autentificarea 2FA. \\
+	Astfel creez doua threaduri, unul ce deserveste clientului 2FA iar al doilea pentru serverul aditional. \\
+	Acest fapt imi permite servirea celor doi clienti in mod concurent si schimbarea de mesaje intre ei, intr-un mod mai avantajos (din punct de vedere al timpului si resurselor) decat crearea de procese pentru fiecare client. \\
+	De asemenea, un thread separat este folosit si pentru generarea de coduri 2FA, pentru ca aceasta generare sa se produca in mod continuu fara a se bloca in timpul apelurilor de citire/scriere efectuate de server.
+	
+	\subsection{Randomizer}
+	Pentru generarea de coduri 2FA am ales folosirea primitivelor $rand()$, respectiv $srand()$. \\
+	Prin $rand()$ generez fiecare simbol (pseudo)aleator dintr-un cod 2FA iar cu ajutorul $srand()$ setez la fiecare cod nou o noua valoare de seed (bazata pe timpul la care s-a executat generarea) pentru a ma asigura ca se vor genera coduri diferite (diferite de la cod la cod intr-o aplicatie dar diferite si intre aplicatii diferite).
+	
+	\section{Arhitectura aplicatiei}
+	 
+\end{document}
